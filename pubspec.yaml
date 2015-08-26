@@ -1,0 +1,7 @@
+name: daxe_server
+version: 0.0.1
+description: Daxe application server
+environment:
+  sdk: '>=1.0.0 <2.0.0'
+dev_dependencies:
+  http_server: any
