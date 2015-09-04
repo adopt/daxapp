@@ -4,6 +4,8 @@ This command-line application serves to provide file access to Daxe running in a
 It turns the Daxe web application into a desktop application.
 
 ## Usage
-`daxe.sh file.xml config_name path_to_daxe.html`
-OR: `daxe.sh file.xml config_name`  if `DAXE_HOME` is set or if `daxe.html` is in the same directory
+`daxe.sh file.xml config_name`
+OR: `daxe.sh file.xml`
+
+`DAXE_HOME` should be set, or `daxe/daxe.html` should be in the same directory
 (requires the [Dart SDK](https://www.dartlang.org/tools/sdk/))
