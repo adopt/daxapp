@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# usage: daxe.sh file.xml config_name path_to_daxe.html
-# OR: daxe.sh file.xml config_name  if DAXE_HOME is set or if daxe.html is in the same directory
+# usage: daxe.sh file.xml  or  daxe.sh file.xml config_name
+# DAXE_HOME should be set to the directory containing daxe.html
 # (requires the Dart SDK)
 
 # change path to file into absolute path
@@ -11,7 +11,7 @@ if ! expr "$file" : '/.*' > /dev/null; then
   file="$pwd/$file"
 fi
 
-# get configuration name
+# get configuration name, if any
 config="$2"
 
 # link resolution - $0 could be a symbolic link
@@ -35,15 +35,5 @@ if [ -z "$DAXAPP_HOME" -o ! -d "$DAXAPP_HOME" ] ; then
   DAXAPP_HOME=`cd "$DAXAPP_HOME" && pwd`
 fi
 
-# get path for daxe.html
-if [ -n "$3" ] ; then
-  DAXEHTML="$3"
-else
-  if [ -z "$DAXE_HOME" -o ! -d "$DAXE_HOME" ] ; then
-    DAXE_HOME='.'
-  fi
-  DAXEHTML="$DAXE_HOME/daxe.html"
-fi
-
-dart "$DAXAPP_HOME/bin/main.dart" "$file" "$config" "$DAXEHTML"
+dart "$DAXAPP_HOME/bin/main.dart" "$file" $config
 

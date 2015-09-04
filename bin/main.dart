@@ -21,8 +21,10 @@ import 'package:daxe_server/daxe_server.dart' as daxe_server;
  * Arguments: XML file path, Config name.
  */
 main(List<String> args) {
-  if (args != null && args.length == 3)
-    daxe_server.start(args[0], args[1], args[2]);
+  if (args != null && args.length == 1)
+    daxe_server.start(args[0]);
+  else if (args != null && args.length == 2)
+    daxe_server.start(args[0], args[1]);
   else
-    print("Usage: dart main.dart file.xml config_name path_to_daxe.html\n");
+    print("Usage: dart main.dart file.xml [config_name]\n");
 }

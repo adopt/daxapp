@@ -28,11 +28,15 @@ import 'package:mime/mime.dart';
 part 'form_field.dart';
 
 final int port = 9473;
-String daxeHtmlFilename;
+
+String daxeDirectoryPath; // assumed to be this_script_dir/../daxe if DAXE_HOME is not defined
+// the Daxe directory must contain daxe.html
+
 // xdg-open is used to run the default browser
 // other possible commands if this fails: sensible-browser (Debian/Ubuntu), open (MacOS)
 // TODO: test on various platforms
 final String browser = 'xdg-open';
+
 String firstPath;
 String key;
 bool sessionSet = false;
@@ -41,8 +45,30 @@ VirtualDirectory vdir;
 /**
  * Starts the server and open the web page, optionally with a file and config to open.
  */
-void start(String filepath, String configName, String daxeHtmlPath) {
-  daxeHtmlFilename = daxeHtmlPath;
+Future start(String filepath, [String configName]) async {
+  // get the Daxe web application absolute directory path
+  Map<String, String> env = Platform.environment;
+  if (env['DAXE_HOME'] != null) {
+    daxeDirectoryPath = env['DAXE_HOME'];
+  } else {
+    Uri script_uri = Platform.script;
+    List<String> segments = new List<String>.from(script_uri.pathSegments);
+    segments.insert(0, '');
+    segments.removeLast();
+    segments.removeLast();
+    segments.add('daxe');
+    daxeDirectoryPath = segments.join('/');
+  }
+  print("Daxe directory path: $daxeDirectoryPath");
+  
+  // find the config name if not defined
+  if (configName == null)
+    configName = await findConfig(filepath, daxeDirectoryPath);
+  if (configName == null) {
+    print("Error: could not find a config for this file");
+    return;
+  }
+  
   var rng = new Random();
   key = rng.nextInt((1<<32) - 1).toString();
   vdir = new VirtualDirectory('/')
@@ -109,25 +135,7 @@ String directoryListing(Directory dir) {
 }
 
 void startBrowser(String filepath, String configName) {
-  Uri script_uri = Platform.script;
-  List<String> segments;
-  if (daxeHtmlFilename.startsWith('/')) {
-    segments = new List<String>();
-  } else {
-    segments = new List<String>.from(script_uri.pathSegments);
-    segments.insert(0, '');
-    segments.removeLast();
-  }
-  segments.addAll(daxeHtmlFilename.split('/'));
-  // normalize the path, Uri.normalizePath() is not available in 1.10
-  for (int i=0; i<segments.length; i++) {
-    if (i > 0 && segments[i] == '..') {
-      segments.removeAt(i);
-      segments.removeAt(i-1);
-      i -= 2;
-    }
-  }
-  String htmlPath = segments.join('/');
+  String htmlPath = daxeDirectoryPath + '/daxe.html';
   firstPath = htmlPath;
   String url = 'http://localhost:$port' + htmlPath;
   if (filepath != null && configName != null)
@@ -163,6 +171,7 @@ void handleGet(HttpRequest request) {
     response.cookies.add(cookie);
   } else {
     if (!checkCookie(request)) {
+      print(request.requestedUri.path + " !=" + firstPath);
       response.statusCode = HttpStatus.FORBIDDEN;
       response.write('Missing session cookie, sorry.');
       response.close();
@@ -297,3 +306,50 @@ Future<File> saveFile(String filepath, content) async {
   else
     throw new Exception("File saving: wrong content type.");
 }
+
+/**
+ * Looks for the right config for the file, quickly looking at all config files in the config directory.
+ */
+Future<String> findConfig(String filePath, String daxePath) async {
+  String rootName = null;
+  Stream<String> fileLines = new File(filePath)
+    .openRead()
+    .transform(UTF8.decoder)
+    .transform(new LineSplitter());
+  RegExp elementExp = new RegExp(r'<(\w+)(\s|>)');
+  await for (String line in fileLines) {
+    Match first = elementExp.firstMatch(line);
+    if (first != null) {
+      rootName = first.group(1);
+      break;
+    }
+  }
+  if (rootName == null)
+    return null;
+  Directory configDir = new Directory(daxePath + '/config');
+  List<FileSystemEntity> list = configDir.listSync(recursive: false, followLinks: false);
+  AsciiCodec laxASCII = new AsciiCodec(allowInvalid:true);
+  for (FileSystemEntity entity in list) {
+    if (entity is File) {
+      String name = entity.path.split('/').last;
+      if (name.endsWith('_config.xml')) {
+        Stream<String> configLines = new File(entity.path)
+          .openRead()
+          .transform(laxASCII.decoder)
+          .transform(new LineSplitter());
+        RegExp rootExp = new RegExp(r'<RACINE\selement="(\w+)\"\s?/>');
+        await for (String line in configLines) {
+          Match first = rootExp.firstMatch(line);
+          if (first != null) {
+            if (first.group(1) == rootName)
+              return name.substring(0, name.indexOf('_config.xml'));
+          }
+          if (line.contains('</LANGAGE>'))
+            break;
+        }
+      }
+    }
+  }
+  return null;
+}
+
