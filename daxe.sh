@@ -4,6 +4,12 @@
 # DAXE_HOME should be set to the directory containing daxe.html
 # (requires the Dart SDK)
 
+# check at least 1 arg
+if [ $# -eq 0 ]; then
+  echo "Usage: daxe.sh file.xml [config_name]"
+  exit 1
+fi
+
 # change path to file into absolute path
 pwd=`pwd`
 file="$1"
