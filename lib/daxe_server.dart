@@ -312,7 +312,11 @@ Future<File> saveFile(String filepath, content) async {
  */
 Future<String> findConfig(String filePath, String daxePath) async {
   String rootName = null;
-  Stream<String> fileLines = new File(filePath)
+  File xmlFile = new File(filePath);
+  bool exists = await xmlFile.exists();
+  if (!exists)
+    return null;
+  Stream<String> fileLines = xmlFile
     .openRead()
     .transform(UTF8.decoder)
     .transform(new LineSplitter());
