@@ -3,9 +3,14 @@
 This command-line application serves to provide file access to Daxe running in a web browser, to edit local files.
 It turns the Daxe web application into a desktop application.
 
+## Installation
+- Install the [Dart SDK](https://www.dartlang.org/tools/sdk/)
+- Use the `pub get` command in the `daxapp` directory
+- set the path to the Daxe web application directory, for instance:
+    `export DAXE_HOME=/.../daxe/build/web`
+    (alternatively, move the Daxe web application so that `daxe/daxe.html` is
+    in the same directory as the command-line application)
+
 ## Usage
 `daxe.sh file.xml config_name`
 OR: `daxe.sh file.xml`
-
-`DAXE_HOME` should be set, or `daxe/daxe.html` should be in the same directory
-(requires the [Dart SDK](https://www.dartlang.org/tools/sdk/))
