@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # usage: daxe.sh file.xml  or  daxe.sh file.xml config_name
 # DAXE_HOME should be set to the directory containing daxe.html
@@ -6,7 +6,10 @@
 
 # check at least 1 arg
 if [ $# -eq 0 ]; then
-  echo "Usage: daxe.sh file.xml [config_name]"
+  case $(tty) in
+    /dev/*) echo "Usage: daxe.sh file.xml [config_name]";;
+    *) xmessage -buttons Ok:0 -default Ok -nearmouse "Usage: daxe.sh file.xml [config_name]" -timeout 10;;
+  esac
   exit 1
 fi
 
@@ -41,5 +44,14 @@ if [ -z "$DAXAPP_HOME" -o ! -d "$DAXAPP_HOME" ] ; then
   DAXAPP_HOME=`cd "$DAXAPP_HOME" && pwd`
 fi
 
-dart "$DAXAPP_HOME/bin/main.dart" "$file" $config
-
+case $(tty) in
+  /dev/*)
+    dart "$DAXAPP_HOME/bin/main.dart" "$file" $config
+  ;;
+  *)
+    error=$( { dart "$DAXAPP_HOME/bin/main.dart" "$file" $config > /dev/null; } 2>&1 )
+    if [ "$?" -ne "0" ]; then
+      xmessage -buttons Ok:0 -default Ok -nearmouse "$error" -timeout 10
+    fi
+  ;;
+esac

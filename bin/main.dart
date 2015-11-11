@@ -15,6 +15,7 @@
   along with Daxe.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+import 'dart:io';
 import 'package:daxe_server/daxe_server.dart' as daxe_server;
 
 /**
@@ -25,6 +26,8 @@ main(List<String> args) {
     daxe_server.start(args[0]);
   else if (args != null && args.length == 2)
     daxe_server.start(args[0], args[1]);
-  else
-    print("Usage: dart main.dart file.xml [config_name]\n");
+  else {
+    stderr.writeln("Usage: dart main.dart file.xml [config_name]\n");
+    exitCode = 2;
+  }
 }

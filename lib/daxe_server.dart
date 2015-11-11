@@ -65,7 +65,8 @@ Future start(String filepath, [String configName]) async {
   if (configName == null)
     configName = await findConfig(filepath, daxeDirectoryPath);
   if (configName == null) {
-    print("Error: could not find a config for this file");
+    stderr.writeln("Error: could not find a config for this file");
+    exitCode = 2;
     return;
   }
   
@@ -83,7 +84,10 @@ Future start(String filepath, [String configName]) async {
         print("Server started.\n");
         startBrowser(filepath, configName);
       })
-      .catchError((e) => print("Error starting the web server: " + e.toString()));
+      .catchError((e) {
+        stderr.writeln("Error starting the web server: " + e.toString());
+        exitCode = 2;
+      });
 }
 
 void directoryHandler(Directory dir, HttpRequest request) {
@@ -320,7 +324,7 @@ Future<String> findConfig(String filePath, String daxePath) async {
     .openRead()
     .transform(UTF8.decoder)
     .transform(new LineSplitter());
-  RegExp elementExp = new RegExp(r'<(\w+)(\s|>)');
+  RegExp elementExp = new RegExp(r'<([\w:]+)(\s|>)');
   await for (String line in fileLines) {
     Match first = elementExp.firstMatch(line);
     if (first != null) {
@@ -330,6 +334,8 @@ Future<String> findConfig(String filePath, String daxePath) async {
   }
   if (rootName == null)
     return null;
+  if (rootName.contains(':'))
+    rootName = rootName.substring(rootName.indexOf(':')+1);
   Directory configDir = new Directory(daxePath + '/config');
   List<FileSystemEntity> list = configDir.listSync(recursive: false, followLinks: false);
   AsciiCodec laxASCII = new AsciiCodec(allowInvalid:true);
