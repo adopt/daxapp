@@ -61,6 +61,8 @@ Future start(String filepath, [String configName]) async {
   }
   print("Daxe directory path: $daxeDirectoryPath");
   
+  filepath = await new File(filepath).resolveSymbolicLinks();
+  
   // find the config name if not defined
   if (configName == null)
     configName = await findConfig(filepath, daxeDirectoryPath);
