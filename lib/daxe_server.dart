@@ -61,11 +61,14 @@ Future start(String filepath, [String configName]) async {
   }
   print("Daxe directory path: $daxeDirectoryPath");
   
-  filepath = await new File(filepath).resolveSymbolicLinks();
-  
-  // find the config name if not defined
-  if (configName == null)
-    configName = await findConfig(filepath, daxeDirectoryPath);
+  File f = new File(filepath);
+  bool exists = await f.exists();
+  if (exists) {
+    filepath = await f.resolveSymbolicLinks();
+    // find the config name if not defined
+    if (configName == null)
+      configName = await findConfig(f, daxeDirectoryPath);
+  }
   if (configName == null) {
     stderr.writeln("Error: could not find a config for this file");
     exitCode = 2;
@@ -316,12 +319,8 @@ Future<File> saveFile(String filepath, content) async {
 /**
  * Looks for the right config for the file, quickly looking at all config files in the config directory.
  */
-Future<String> findConfig(String filePath, String daxePath) async {
+Future<String> findConfig(File xmlFile, String daxePath) async {
   String rootName = null;
-  File xmlFile = new File(filePath);
-  bool exists = await xmlFile.exists();
-  if (!exists)
-    return null;
   Stream<String> fileLines = xmlFile
     .openRead()
     .transform(UTF8.decoder)
