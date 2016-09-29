@@ -60,7 +60,7 @@ Future start(String filepath, [String configName]) async {
     daxeDirectoryPath = segments.join('/');
   }
   print("Daxe directory path: $daxeDirectoryPath");
-  
+
   File f = new File(filepath);
   bool exists = await f.exists();
   if (exists) {
@@ -74,7 +74,7 @@ Future start(String filepath, [String configName]) async {
     exitCode = 2;
     return;
   }
-  
+
   var rng = new Random();
   key = rng.nextInt((1<<32) - 1).toString();
   vdir = new VirtualDirectory('/')
@@ -236,7 +236,7 @@ Future handlePost(HttpRequest request) async {
   try {
     List<FormField> fields = await getFields(request);
     if (fields.length == 2 && fields[0].name == 'path' && fields[1].name == 'file') {
-      File f = await saveFile(fields.first.value, fields[1].value);
+      await saveFile(fields.first.value, fields[1].value);
     }
     response.write('ok');
     response.close();
@@ -275,11 +275,11 @@ Future<FormField> convertPartToField(MimeMultipart part) async {
       case 'content-type':
         type = ContentType.parse(part.headers[key]);
         break;
-      
+
       case 'content-transfer-encoding':
         encoding = HeaderValue.parse(part.headers[key]);
         break;
-      
+
       case 'content-disposition':
         disposition = HeaderValue.parse(part.headers[key],
                                         preserveBackslash: true);
@@ -321,9 +321,10 @@ Future<File> saveFile(String filepath, content) async {
  */
 Future<String> findConfig(File xmlFile, String daxePath) async {
   String rootName = null;
+  AsciiCodec laxASCII = new AsciiCodec(allowInvalid:true);
   Stream<String> fileLines = xmlFile
     .openRead()
-    .transform(UTF8.decoder)
+    .transform(laxASCII.decoder)
     .transform(new LineSplitter());
   RegExp elementExp = new RegExp(r'<([\w:]+)(\s|>)');
   await for (String line in fileLines) {
@@ -339,7 +340,6 @@ Future<String> findConfig(File xmlFile, String daxePath) async {
     rootName = rootName.substring(rootName.indexOf(':')+1);
   Directory configDir = new Directory(daxePath + '/config');
   List<FileSystemEntity> list = configDir.listSync(recursive: false, followLinks: false);
-  AsciiCodec laxASCII = new AsciiCodec(allowInvalid:true);
   for (FileSystemEntity entity in list) {
     if (entity is File) {
       String name = entity.path.split('/').last;
@@ -363,4 +363,3 @@ Future<String> findConfig(File xmlFile, String daxePath) async {
   }
   return null;
 }
-
