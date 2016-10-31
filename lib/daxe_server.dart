@@ -348,14 +348,14 @@ Future<String> findConfig(File xmlFile, String daxePath) async {
           .openRead()
           .transform(laxASCII.decoder)
           .transform(new LineSplitter());
-        RegExp rootExp = new RegExp(r'<RACINE\selement="(\w+)\"\s?/>');
+        RegExp rootExp = new RegExp(r'<ROOT\selement="(\w+)\"\s?/>');
         await for (String line in configLines) {
           Match first = rootExp.firstMatch(line);
           if (first != null) {
             if (first.group(1) == rootName)
               return name.substring(0, name.indexOf('_config.xml'));
           }
-          if (line.contains('</LANGAGE>'))
+          if (line.contains('</LANGUAGE>'))
             break;
         }
       }
