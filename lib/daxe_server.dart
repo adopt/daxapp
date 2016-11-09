@@ -27,7 +27,7 @@ import 'package:mime/mime.dart';
 
 part 'form_field.dart';
 
-final int port = 9473;
+int port;
 
 String daxeDirectoryPath; // assumed to be this_script_dir/../daxe if DAXE_HOME is not defined
 // the Daxe directory must contain daxe.html
@@ -81,8 +81,9 @@ Future start(String filepath, [String configName]) async {
     ..allowDirectoryListing = true
     ..directoryHandler = directoryHandler;
   HttpServer
-      .bind(InternetAddress.LOOPBACK_IP_V4, port)
+      .bind(InternetAddress.LOOPBACK_IP_V4, 0)
       .then((server) {
+        port = server.port;
         server.listen((HttpRequest request) {
           handleRequest(request);
         });
@@ -175,7 +176,7 @@ void handleRequest(HttpRequest request) {
 void handleGet(HttpRequest request) {
   HttpResponse response = request.response;
   if (request.requestedUri.path == firstPath && !sessionSet) {
-    Cookie cookie = new Cookie('daxe-key', key);
+    Cookie cookie = new Cookie("daxe-key-$port", key);
     cookie.path = '/';
     response.cookies.add(cookie);
   } else {
@@ -200,7 +201,7 @@ void handleGet(HttpRequest request) {
 bool checkCookie(HttpRequest request) {
   bool foundCookie = false;
   for (Cookie cookie in request.cookies) {
-    if (cookie.name == 'daxe-key' && cookie.value == key) {
+    if (cookie.name == "daxe-key-$port" && cookie.value == key) {
       foundCookie = true;
       break;
     }
