@@ -179,6 +179,7 @@ void handleGet(HttpRequest request) {
     Cookie cookie = new Cookie("daxe-key-$port", key);
     cookie.path = '/';
     response.cookies.add(cookie);
+    sessionSet = true;
   } else {
     if (!checkCookie(request)) {
       print(request.requestedUri.path + " !=" + firstPath);
