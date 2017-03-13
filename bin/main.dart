@@ -23,11 +23,13 @@ import 'package:daxe_server/daxe_server.dart' as daxe_server;
  */
 main(List<String> args) {
   if (args != null && args.length == 1)
-    daxe_server.start(args[0]);
-  else if (args != null && args.length == 2)
-    daxe_server.start(args[0], args[1]);
+    daxe_server.start(filepath:args[0]);
+  else if (args != null && args.length == 2 && args[0] == '-config')
+    daxe_server.start(configName:args[1]);
+  else if (args != null && args.length == 3 && args[0] == '-config')
+    daxe_server.start(configName:args[1], filepath:args[2]);
   else {
-    stderr.writeln("Usage: dart main.dart file.xml [config_name]\n");
+    stderr.writeln("Usage: dart main.dart [-config config_name] [file.xml]\n");
     exitCode = 2;
   }
 }

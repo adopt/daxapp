@@ -45,7 +45,7 @@ VirtualDirectory vdir;
 /**
  * Starts the server and open the web page, optionally with a file and config to open.
  */
-Future start(String filepath, [String configName]) async {
+Future start({String filepath, String configName}) async {
   // get the Daxe web application absolute directory path
   Map<String, String> env = Platform.environment;
   if (env['DAXE_HOME'] != null) {
@@ -61,13 +61,15 @@ Future start(String filepath, [String configName]) async {
   }
   print("Daxe directory path: $daxeDirectoryPath");
 
-  File f = new File(filepath);
-  bool exists = await f.exists();
-  if (exists) {
-    filepath = await f.resolveSymbolicLinks();
-    // find the config name if not defined
-    if (configName == null)
-      configName = await findConfig(f, daxeDirectoryPath);
+  if (filepath != null) {
+    File f = new File(filepath);
+    bool exists = await f.exists();
+    if (exists) {
+      filepath = await f.resolveSymbolicLinks();
+      // find the config name if not defined
+      if (configName == null)
+        configName = await findConfig(f, daxeDirectoryPath);
+    }
   }
   if (configName == null) {
     stderr.writeln("Error: could not find a config for this file");
@@ -147,9 +149,14 @@ String directoryListing(Directory dir) {
 void startBrowser(String filepath, String configName) {
   String htmlPath = daxeDirectoryPath + '/daxe.html';
   firstPath = htmlPath;
-  String url = 'http://localhost:$port' + htmlPath;
-  if (filepath != null && configName != null)
-    url += '?file=' + filepath + '&config=config/' + configName + '_config.xml';
+  String url = 'http://localhost:$port' + htmlPath + '?';
+  if (filepath != null)
+    url += 'file=' + filepath;
+  if (configName != null) {
+    if (filepath != null)
+      url += '&';
+    url += 'config=config/' + configName + '_config.xml';
+  }
   url += '&save=/save&application=true';
   Process.run(browser, [url]).then((ProcessResult results) {
     if (results.exitCode != 0) {

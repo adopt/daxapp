@@ -7,21 +7,34 @@
 # check at least 1 arg
 if [ $# -eq 0 ]; then
   case $(tty) in
-    /dev/*) echo "Usage: daxe.sh file.xml [config_name]";;
-    *) xmessage -buttons Ok:0 -default Ok -nearmouse "Usage: daxe.sh file.xml [config_name]" -timeout 10;;
+    /dev/*) echo "Usage: daxe.sh [-config config_name] file.xml";;
+    *) xmessage -buttons Ok:0 -default Ok -nearmouse "Usage: daxe.sh [-config config_name] file.xml" -timeout 10;;
   esac
   exit 1
 fi
 
-# change path to file into absolute path
-pwd=`pwd`
-file="$1"
-if ! expr "$file" : '/.*' > /dev/null; then
-  file="$pwd/$file"
+# get parameters
+config=""
+file=""
+if [ "$1" == "-config" ]; then
+  config="$2"
+  if [ $# -gt 1 ]; then
+    file="$3";
+  fi
+else
+  file="$1";
+  if [ "$2" == "-config" ]; then
+    config="$3";
+  fi
 fi
 
-# get configuration name, if any
-config="$2"
+# change path to file into absolute path
+if [ "$file" != "" ]; then
+  pwd=`pwd`
+  if ! expr "$file" : '/.*' > /dev/null; then
+    file="$pwd/$file"
+  fi
+fi
 
 # link resolution - $0 could be a symbolic link
 if [ -z "$DAXAPP_HOME" -o ! -d "$DAXAPP_HOME" ] ; then
@@ -44,12 +57,19 @@ if [ -z "$DAXAPP_HOME" -o ! -d "$DAXAPP_HOME" ] ; then
   DAXAPP_HOME=`cd "$DAXAPP_HOME" && pwd`
 fi
 
+cmd="dart \"$DAXAPP_HOME/bin/main.dart\""
+if [ "$config" != "" ]; then
+  cmd="$cmd -config \"$config\""
+fi
+if [ "$file" != "" ]; then
+  cmd="$cmd \"$file\""
+fi
 case $(tty) in
   /dev/*)
-    dart "$DAXAPP_HOME/bin/main.dart" "$file" $config
+    eval $cmd
   ;;
   *)
-    error=$( { dart "$DAXAPP_HOME/bin/main.dart" "$file" $config > /dev/null; } 2>&1 )
+    error=$( { eval $cmd > /dev/null; } 2>&1 )
     if [ "$?" -ne "0" ]; then
       xmessage -buttons Ok:0 -default Ok -nearmouse "$error" -timeout 10
     fi
