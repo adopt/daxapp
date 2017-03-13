@@ -2,3 +2,4 @@ packages
 CVS
 .hg/
 .hgignore
+pubspec.lock
