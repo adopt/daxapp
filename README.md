@@ -18,7 +18,6 @@ It turns the Daxe web application into a desktop application.
 
 ## Usage
 - command-line: `daxe.sh -config config_name` or `daxe.sh -config config_name file.xml` or `daxe.sh file.xml`.
+Example: `daxe.sh -config XHTML5 test.xhtml`.
 If the configuration is not specified, Daxe will look for the right one based on the name of the root element.
 - desktop application: a file can be opened with a drag-and-drop on the application icon.
-
-Note that currently only one file may be opened at a time.
